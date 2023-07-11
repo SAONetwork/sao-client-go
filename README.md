@@ -8,7 +8,7 @@ $ go get github.com/SaoNetwork/sao-client-go
 
 # Prerequisite
 
-follow sao client cmd tutorial to prepare local sao did client.
+follow [sao client cmd tutorial](https://docs.sao.network/build-apps-on-sao-network/cli-tutorial) to prepare local sao did.
 
 # Usage
 
@@ -23,8 +23,8 @@ import "github.com/SaoNetwork/sao-client-go/sdk"
 * initialize sao client
 
   ```
-  nodeUrl := "http://127.0.0.1:5151/rpc/v0"
-  chainUrl := "http://127.0.0.1:26657"
+  nodeUrl := "https://gateway-beta.sao.network:443/rpc/v0"
+  chainUrl := "https://rpc-beta.sao.network:443"
   didKey := "<didkey>"
   client, err := sdk.NewSaoClientApi(ctx, nodeUrl, didKey)
   ```
