@@ -1,4 +1,4 @@
-module sao-client-go
+module github.com/SaoNetwork/sao-sdk-go
 
 go 1.19
 
