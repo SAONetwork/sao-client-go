@@ -47,9 +47,10 @@ type SaoClientApi struct {
 	ChainEndpoint string
 	Closer        func()
 	keyName       string
+	keyringHome   string
 }
 
-func NewSaoClientApi(ctx context.Context, nodeEndpoint string, chainEndpoint string, KeyName string) (*SaoClientApi, error) {
+func NewSaoClientApi(ctx context.Context, nodeEndpoint string, chainEndpoint string, KeyName string, keyringHome string) (*SaoClientApi, error) {
 	client, closer, err := NewSaoClient(ctx, nodeEndpoint, chainEndpoint)
 	if err != nil {
 		return nil, err
@@ -61,6 +62,7 @@ func NewSaoClientApi(ctx context.Context, nodeEndpoint string, chainEndpoint str
 		Closer:        closer,
 		client:        client,
 		keyName:       KeyName,
+		keyringHome:   keyringHome,
 	}, nil
 }
 
@@ -88,14 +90,13 @@ func NewSaoClient(ctx context.Context, nodeEndpoint string, chainEndpoint string
 }
 
 func (sc *SaoClientApi) GetDidManager(ctx context.Context, keyName string) (*saodid.DidManager, string, error) {
-	KeyringHome := "~/.sao"
-	address, err := chain.GetAddress(ctx, KeyringHome, keyName)
+	address, err := chain.GetAddress(ctx, sc.keyringHome, keyName)
 	if err != nil {
 		return nil, "", err
 	}
 
 	payload := fmt.Sprintf("cosmos %s allows to generate did", address)
-	secret, err := chain.SignByAccount(ctx, KeyringHome, keyName, []byte(payload))
+	secret, err := chain.SignByAccount(ctx, sc.keyringHome, keyName, []byte(payload))
 	if err != nil {
 		return nil, "", types.Wrap(types.ErrSignedFailed, err)
 	}
@@ -486,7 +487,6 @@ func (sc *SaoClientApi) UpdateModel(
 	if err != nil {
 		return "", "", "", err
 	}
-	fmt.Printf("alias: %s, data id: %s, commit id: %s.\r\n", resp.Alias, resp.DataId, resp.CommitId)
 	return resp.Alias, resp.DataId, resp.CommitId, nil
 }
 
@@ -558,7 +558,6 @@ func (sc *SaoClientApi) CreateModel(
 	if err != nil {
 		return "", "", err
 	}
-	fmt.Printf("alias: %s, data id: %s\r\n", resp.Alias, resp.DataId)
 
 	return resp.Alias, resp.DataId, nil
 }

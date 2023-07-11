@@ -3,7 +3,7 @@ module github.com/SaoNetwork/sao-client-go
 go 1.19
 
 require (
-	github.com/SaoNetwork/sao v0.1.4
+	github.com/SaoNetwork/sao v0.1.7
 	github.com/SaoNetwork/sao-did v0.0.12
 	github.com/SaoNetwork/sao-node v0.0.0-00010101000000-000000000000
 	github.com/filecoin-project/go-jsonrpc v0.1.8
