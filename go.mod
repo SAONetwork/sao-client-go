@@ -164,8 +164,4 @@ require (
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
 
-replace github.com/SaoNetwork/sao-node => ../sao-storage-node2
-
-replace github.com/SaoNetwork/sao => ../sao-consensus
-
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
