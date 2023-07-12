@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/SaoNetwork/sao v0.1.7
 	github.com/SaoNetwork/sao-did v0.0.12
-	github.com/SaoNetwork/sao-node v0.0.0-00010101000000-000000000000
+	github.com/SaoNetwork/sao-node v0.1.6
 	github.com/filecoin-project/go-jsonrpc v0.1.8
 	github.com/ipfs/go-cid v0.4.1
 	github.com/multiformats/go-multicodec v0.9.0

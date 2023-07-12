@@ -60,8 +60,12 @@ github.com/ChainSafe/go-schnorrkel v0.0.0-20200405005733-88cbf1b4c40d/go.mod h1:
 github.com/DataDog/datadog-go v3.2.0+incompatible/go.mod h1:LButxg5PwREeZtORoXG3tL4fMGNddJ+vMq1mwgfaqoQ=
 github.com/OneOfOne/xxhash v1.2.2 h1:KMrpdQIwFcEqXDklaen+P1axHaj9BSKzvpUUfnHldSE=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
+github.com/SaoNetwork/sao v0.1.7 h1:v/yN7KmpvdCNyYxMLglpANWtUQp8Tax5TkHpolAgPHE=
+github.com/SaoNetwork/sao v0.1.7/go.mod h1:J9WnJqzodA5EJG+vd/+hg7qC+tzyw8D63CJybbLfKDE=
 github.com/SaoNetwork/sao-did v0.0.12 h1:PchVFK+z8e8uxdZNP3xLmP/hic/xTypy2mIw72yxRcE=
 github.com/SaoNetwork/sao-did v0.0.12/go.mod h1:Xl9sUZtuMwF8ooxvXMS5AOpgv5qKP0D6d0lex6rNJi4=
+github.com/SaoNetwork/sao-node v0.1.6 h1:TmZ3EGSK40uN0WgEXhzUBH/lqnfVsyqOu0lFJn+0wY4=
+github.com/SaoNetwork/sao-node v0.1.6/go.mod h1:52SPZ6KW1FX+uBMrh8W4uRuIogemVhEwxVA0k1JcoOs=
 github.com/VividCortex/gohistogram v1.0.0 h1:6+hBz+qvs0JOrrNhhmR7lFxo5sINxBCGXrdtl/UvroE=
 github.com/Workiva/go-datastructures v1.0.53 h1:J6Y/52yX10Xc5JjXmGtWoSSxs3mZnGSaq37xZZh7Yig=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
