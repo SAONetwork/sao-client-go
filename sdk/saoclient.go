@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -15,6 +17,7 @@ import (
 	api "github.com/SaoNetwork/sao-node/api"
 	apitypes "github.com/SaoNetwork/sao-node/api/types"
 	"github.com/SaoNetwork/sao-node/chain"
+	saoclient "github.com/SaoNetwork/sao-node/client"
 	types "github.com/SaoNetwork/sao-node/types"
 	utils "github.com/SaoNetwork/sao-node/utils"
 	saotypes "github.com/SaoNetwork/sao/x/sao/types"
@@ -490,6 +493,119 @@ func (sc *SaoClientApi) UpdateModel(
 	return resp.Alias, resp.DataId, resp.CommitId, nil
 }
 
+func (sc *SaoClientApi) UploadFile(
+	ctx context.Context,
+	fpath string,
+	multiaddr string,
+) ([]string, error) {
+	if !strings.Contains(multiaddr, "/p2p/") {
+		return nil, types.Wrapf(types.ErrInvalidParameters, "invalid multiaddr: %s", multiaddr)
+	}
+	peerId := strings.Split(multiaddr, "/p2p/")[1]
+
+	var files []string
+	err := filepath.Walk(fpath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if !info.IsDir() {
+			files = append(files, path)
+		} else {
+			fmt.Printf("skip directory %s\r\n", path)
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, types.Wrap(types.ErrInvalidParameters, err)
+	}
+
+	var cids []string
+	for _, file := range files {
+		c := saoclient.DoTransport(ctx, "~/.sao-cli", multiaddr, peerId, file)
+		if c != cid.Undef {
+			cids = append(cids, c.String())
+		} else {
+			return nil, xerrors.Errorf("upload error")
+		}
+	}
+	return cids, nil
+}
+
+func (sc *SaoClientApi) CreateFile(
+	ctx context.Context,
+	fileName string,
+	cidString string,
+	groupId string,
+	duration uint64,
+	delay uint64,
+	replicas uint64,
+	size uint64,
+) (string, string, error) {
+	if fileName == "" {
+		return "", "", xerrors.Errorf("must provide file name")
+	}
+
+	didManager, _, err := sc.GetDidManager(ctx, sc.keyName)
+	if err != nil {
+		return "", "", xerrors.Errorf("failed to get did manager %v", err)
+	}
+
+	gatewayAddress, err := sc.client.GetNodeAddress(ctx)
+	if err != nil {
+		return "", "", err
+	}
+
+	contentCid, err := cid.Decode(cidString)
+	if err != nil {
+		return "", "", types.Wrap(types.ErrInvalidCid, err)
+	}
+
+	dataId := utils.GenerateDataId(didManager.Id + groupId)
+	proposal := saotypes.Proposal{
+		DataId:     dataId,
+		Owner:      didManager.Id,
+		Provider:   gatewayAddress,
+		GroupId:    groupId,
+		Duration:   uint64(time.Duration(60*60*24*duration) * time.Second / chain.Blocktime),
+		Replica:    int32(replicas),
+		Timeout:    int32(delay),
+		Alias:      fileName,
+		Tags:       []string{},
+		Cid:        contentCid.String(),
+		CommitId:   dataId,
+		Rule:       "",
+		Operation:  1,
+		ExtendInfo: "",
+		Size_:      size,
+	}
+
+	clientProposal, err := sc.buildClientProposal(ctx, didManager, proposal, sc.client)
+	if err != nil {
+		return "", "", err
+	}
+
+	var orderId uint64 = 0
+
+	queryProposal := saotypes.QueryProposal{
+		Owner:   didManager.Id,
+		Keyword: dataId,
+	}
+
+	request, err := sc.buildQueryRequest(ctx, didManager, queryProposal, sc.client, gatewayAddress)
+	if err != nil {
+		return "", "", err
+	}
+
+	resp, err := sc.client.ModelCreateFile(ctx, request, clientProposal, orderId)
+	if err != nil {
+		return "", "", err
+	}
+	return resp.Alias, resp.DataId, nil
+}
+
 func (sc *SaoClientApi) CreateModel(
 	ctx context.Context,
 	content string,
@@ -498,6 +614,7 @@ func (sc *SaoClientApi) CreateModel(
 	delay uint64,
 	name string,
 	replicas uint64,
+	isPublic bool,
 ) (string, string, error) {
 	if content == "" {
 		return "", "", xerrors.Errorf("must provide content")
@@ -557,6 +674,43 @@ func (sc *SaoClientApi) CreateModel(
 	resp, err := sc.client.ModelCreate(ctx, request, clientProposal, 0, contentBytes)
 	if err != nil {
 		return "", "", err
+	}
+
+	if isPublic {
+		builtinDids, err := sc.client.QueryDidParams(ctx)
+		if err != nil {
+			return "", "", err
+		}
+
+		proposal := saotypes.PermissionProposal{
+			Owner:         didManager.Id,
+			DataId:        resp.DataId,
+			ReadonlyDids:  strings.Split(builtinDids, ","),
+			ReadwriteDids: []string{},
+		}
+
+		proposalBytes, err := proposal.Marshal()
+		if err != nil {
+			return "", "", types.Wrap(types.ErrMarshalFailed, err)
+		}
+
+		jws, err := didManager.CreateJWS(proposalBytes)
+		if err != nil {
+			return "", "", types.Wrap(types.ErrCreateJwsFailed, err)
+		}
+
+		request := &types.PermissionProposal{
+			Proposal: proposal,
+			JwsSignature: saotypes.JwsSignature{
+				Protected: jws.Signatures[0].Protected,
+				Signature: jws.Signatures[0].Signature,
+			},
+		}
+
+		_, err = sc.client.ModelUpdatePermission(ctx, request, true)
+		if err != nil {
+			return "", "", err
+		}
 	}
 
 	return resp.Alias, resp.DataId, nil
