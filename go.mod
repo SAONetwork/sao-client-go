@@ -2,6 +2,8 @@ module github.com/SaoNetwork/sao-client-go
 
 go 1.19
 
+replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
+
 require (
 	github.com/SaoNetwork/sao v0.1.7
 	github.com/SaoNetwork/sao-did v0.0.12
@@ -163,5 +165,3 @@ require (
 	lukechampine.com/blake3 v1.1.7 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )
-
-replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1

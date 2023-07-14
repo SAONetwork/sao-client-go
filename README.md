@@ -4,6 +4,8 @@ add sao-client-go dependency to your project:
 
 ```
 $ go get github.com/SaoNetwork/sao-client-go
+$ go mod init example
+$ echo replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1 >> go.mod
 ```
 
 # Prerequisite
@@ -22,12 +24,13 @@ import "github.com/SaoNetwork/sao-client-go/sdk"
 
 * initialize sao client
 
-  ```
-  nodeUrl := "https://gateway-beta.sao.network:443/rpc/v0"
-  chainUrl := "https://rpc-beta.sao.network:443"
-  didKey := "<didkey>"
-  client, err := sdk.NewSaoClientApi(ctx, nodeUrl, didKey)
-  ```
+```
+nodeUrl := "https://gateway-beta.sao.network:443/rpc/v0"
+chainUrl := "https://rpc-beta.sao.network:443"
+keyName := "<keyName>"
+keyHome := "~/.sao"
+client, err := sdk.NewSaoClientApi(ctx, nodeUrl, didName, keyHome)
+```
 
 node url is endpoint to connect to gateway.
 
