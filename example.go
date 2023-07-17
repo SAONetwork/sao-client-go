@@ -10,25 +10,50 @@ import (
 func main() {
 	ctx := context.Background()
 
-	client, err := sdk.NewSaoClientApi(ctx, "https://gateway-beta.sao.network:443/rpc/v0", "https://rpc-beta.sao.network:443", "leo", "~/.sao")
+	client, err := sdk.NewSaoClientApi(
+		ctx,
+		"https://gateway-beta.sao.network:443/rpc/v0", // gateway api
+		"https://rpc-beta.sao.network:443",            // chain api
+		"irene",                                       // account key name
+		"~/.sao",                                      // keyring home dir
+	)
 	if err != nil {
 		return
 	}
 
 	// upload model
 	fmt.Println("upload model")
-	ss, err := client.UploadFile(ctx, "/home/leor/a.txt", "/ip4/192.168.50.191/udp/5154/quic/webtransport/certhash/uEiDE31O-TXq0q-WPrEfxLNMKAQkfQMS732E6j8s8VeHxBw/certhash/uEiDG9-zriMhbz-bHX858bc1WUrcjHCTeyjjLXTToFUN7DQ/p2p/12D3KooWDSuvsdxaKiP9UtAoxAYwWbtJbhyQxx23Aous67LN7h8K")
+	ss, err := client.UploadFile(
+		ctx,
+		// local file path
+		"foo.txt",
+		// multiaddr of gateway
+		"/ip4/8.222.225.178/udp/5154/quic/webtransport/certhash/uEiAEe-50if6gVaECe0NKhKBhHEMySfy4HtAD2VexGODPaA/certhash/uEiDhqfDJEUnPGh9BMCzoWVTKpA4V3aunIf7F1fCgi1rA5A/p2p/12D3KooWJA2R7RTd6aD2pUdvjN29FdiC8f5edSifXA2tXBcbA2UX",
+	)
 	if err != nil {
 		fmt.Println("upload file err: ", err)
 		return
 	}
 	fmt.Println("cid", ss[0])
 
-	alias, dataId, err := client.CreateFile(ctx, "filename", ss[0], "example", 365, 100, 1, 4)
+	alias, dataId, err := client.CreateFile(
+		ctx,
+		"foo.txt", // file name
+		ss[0],     // cid
+		"example", // group id
+		365,       // duration days
+		100,       // delay epochs
+		1,         // replica count
+		4,         // file size of foo.txt
+	)
 	if err != nil {
 		fmt.Println("err: ", err)
+		return
 	}
 	fmt.Println("alias: ", alias, "dataId: ", dataId)
+	// download link
+	// https://gateway-beta.sao.network/sao/2ce74379-1fdd-11ee-a875-be229d211050
+	// {"nickname": "irene"}
 
 	fmt.Println("create model...")
 	content := "{\"nickname\": \"irene\"}"
@@ -56,5 +81,4 @@ func main() {
 		// https://gateway-beta.sao.network/sao/2ce74379-1fdd-11ee-a875-be229d211050
 		// {"nickname": "irene"}
 	}
-
 }
