@@ -677,41 +677,42 @@ func (sc *SaoClientApi) CreateModel(
 	}
 
 	if isPublic {
-		builtinDids, err := sc.client.QueryDidParams(ctx)
-		if err != nil {
-			return "", "", err
-		}
-
-		proposal := saotypes.PermissionProposal{
-			Owner:         didManager.Id,
-			DataId:        resp.DataId,
-			ReadonlyDids:  strings.Split(builtinDids, ","),
-			ReadwriteDids: []string{},
-		}
-
-		proposalBytes, err := proposal.Marshal()
-		if err != nil {
-			return "", "", types.Wrap(types.ErrMarshalFailed, err)
-		}
-
-		jws, err := didManager.CreateJWS(proposalBytes)
-		if err != nil {
-			return "", "", types.Wrap(types.ErrCreateJwsFailed, err)
-		}
-
-		request := &types.PermissionProposal{
-			Proposal: proposal,
-			JwsSignature: saotypes.JwsSignature{
-				Protected: jws.Signatures[0].Protected,
-				Signature: jws.Signatures[0].Signature,
-			},
-		}
-
-		_, err = sc.client.ModelUpdatePermission(ctx, request, true)
-		if err != nil {
-			return "", "", err
-		}
+		//builtinDids, err := sc.client.QueryDidParams(ctx)
+		//if err != nil {
+		//	return "", "", err
+		//}
+		//
+		//proposal := saotypes.PermissionProposal{
+		//	Owner:         didManager.Id,
+		//	DataId:        resp.DataId,
+		//	ReadonlyDids:  strings.Split(builtinDids, ","),
+		//	ReadwriteDids: []string{},
+		//}
+		//
+		//proposalBytes, err := proposal.Marshal()
+		//if err != nil {
+		//	return "", "", types.Wrap(types.ErrMarshalFailed, err)
+		//}
+		//
+		//jws, err := didManager.CreateJWS(proposalBytes)
+		//if err != nil {
+		//	return "", "", types.Wrap(types.ErrCreateJwsFailed, err)
+		//}
+		//
+		//request := &types.PermissionProposal{
+		//	Proposal: proposal,
+		//	JwsSignature: saotypes.JwsSignature{
+		//		Protected: jws.Signatures[0].Protected,
+		//		Signature: jws.Signatures[0].Signature,
+		//	},
+		//}
+		//
+		//_, err = sc.client.ModelUpdatePermission(ctx, request, true)
+		//if err != nil {
+		//	return "", "", err
+		//}
 	}
+
 
 	return resp.Alias, resp.DataId, nil
 }
