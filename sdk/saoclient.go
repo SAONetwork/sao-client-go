@@ -20,6 +20,7 @@ import (
 	saoclient "github.com/SaoNetwork/sao-node/client"
 	types "github.com/SaoNetwork/sao-node/types"
 	utils "github.com/SaoNetwork/sao-node/utils"
+	modeltypes "github.com/SaoNetwork/sao/x/model/types"
 	saotypes "github.com/SaoNetwork/sao/x/sao/types"
 	"github.com/filecoin-project/go-jsonrpc"
 	cid "github.com/ipfs/go-cid"
@@ -713,7 +714,6 @@ func (sc *SaoClientApi) CreateModel(
 		//}
 	}
 
-
 	return resp.Alias, resp.DataId, nil
 }
 
@@ -779,6 +779,10 @@ func (sc *SaoClientApi) buildClientProposal(_ context.Context, didManager *did.D
 			Signature: jws.Signatures[0].Signature,
 		},
 	}, nil
+}
+
+func (sc *SaoClientApi) GetModel(ctx context.Context, key string) (*modeltypes.QueryGetModelResponse, error) {
+	return sc.client.GetModel(ctx, key)
 }
 
 func CalculateCid(content []byte) (cid.Cid, error) {
