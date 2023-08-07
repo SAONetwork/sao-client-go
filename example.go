@@ -29,6 +29,7 @@ func main() {
 		"foo.txt",
 		// multiaddr of gateway
 		"/ip4/8.222.225.178/udp/5154/quic/webtransport/certhash/uEiAEe-50if6gVaECe0NKhKBhHEMySfy4HtAD2VexGODPaA/certhash/uEiDhqfDJEUnPGh9BMCzoWVTKpA4V3aunIf7F1fCgi1rA5A/p2p/12D3KooWJA2R7RTd6aD2pUdvjN29FdiC8f5edSifXA2tXBcbA2UX",
+		"udp",
 	)
 	if err != nil {
 		fmt.Println("upload file err: ", err)

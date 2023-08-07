@@ -305,7 +305,7 @@ func (sc *SaoClientApi) Load(
 	if err != nil {
 		return nil, err
 	}
-	return []byte(resp.Content), nil
+	return resp.Content, nil
 }
 
 func (sc *SaoClientApi) UpdatePermission(
@@ -497,7 +497,12 @@ func (sc *SaoClientApi) UploadFile(
 	ctx context.Context,
 	fpath string,
 	multiaddr string,
+	protocol string,
 ) ([]string, error) {
+	if protocol == "" {
+		protocol = "udp"
+	}
+
 	if !strings.Contains(multiaddr, "/p2p/") {
 		return nil, types.Wrapf(types.ErrInvalidParameters, "invalid multiaddr: %s", multiaddr)
 	}
@@ -524,7 +529,13 @@ func (sc *SaoClientApi) UploadFile(
 
 	var cids []string
 	for _, file := range files {
-		c := saoclient.DoTransport(ctx, "~/.sao-cli", multiaddr, peerId, file)
+		var c cid.Cid
+		if protocol == "tcp" {
+			c = saoclient.DoTransportTCP(ctx, "~/.sao-cli", multiaddr, file)
+		} else {
+			c = saoclient.DoTransport(ctx, "~/.sao-cli", multiaddr, peerId, file)
+		}
+
 		if c != cid.Undef {
 			cids = append(cids, c.String())
 		} else {
