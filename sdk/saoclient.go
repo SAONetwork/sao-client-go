@@ -356,6 +356,24 @@ func (sc *SaoClientApi) UpdatePermission(
 	return nil
 }
 
+func (sc *SaoClientApi) SetPublicPermission(ctx context.Context, dataId string) error {
+	builtinDids, err := sc.client.QueryDidParams(ctx)
+	if err != nil {
+		return err
+	}
+
+	readonlyDids := strings.Split(builtinDids, ",")
+	readwriteDids := []string{}
+
+	// Call UpdatePermission function
+	err = sc.UpdatePermission(ctx, dataId, readonlyDids, readwriteDids)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (sc *SaoClientApi) PatchGen(
 	origin string,
 	target string,
@@ -689,37 +707,7 @@ func (sc *SaoClientApi) CreateModel(
 	}
 
 	if isPublic {
-		builtinDids, err := sc.client.QueryDidParams(ctx)
-		if err != nil {
-			return "", "", err
-		}
-
-		proposal := saotypes.PermissionProposal{
-			Owner:         didManager.Id,
-			DataId:        resp.DataId,
-			ReadonlyDids:  strings.Split(builtinDids, ","),
-			ReadwriteDids: []string{},
-		}
-
-		proposalBytes, err := proposal.Marshal()
-		if err != nil {
-			return "", "", types.Wrap(types.ErrMarshalFailed, err)
-		}
-
-		jws, err := didManager.CreateJWS(proposalBytes)
-		if err != nil {
-			return "", "", types.Wrap(types.ErrCreateJwsFailed, err)
-		}
-
-		request := &types.PermissionProposal{
-			Proposal: proposal,
-			JwsSignature: saotypes.JwsSignature{
-				Protected: jws.Signatures[0].Protected,
-				Signature: jws.Signatures[0].Signature,
-			},
-		}
-
-		_, err = sc.client.ModelUpdatePermission(ctx, request, true)
+		err := sc.SetPublicPermission(ctx, resp.DataId)
 		if err != nil {
 			return "", "", err
 		}
