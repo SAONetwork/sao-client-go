@@ -4,10 +4,6 @@ go 1.19
 
 replace github.com/gogo/protobuf => github.com/regen-network/protobuf v1.3.3-alpha.regen.1
 
-replace github.com/SaoNetwork/sao-node => ../sao-node
-
-//replace github.com/SaoNetwork/sao-node => ../sao-storage-node2
-
 require (
 	github.com/SaoNetwork/sao v0.1.7
 	github.com/SaoNetwork/sao-did v0.0.12
