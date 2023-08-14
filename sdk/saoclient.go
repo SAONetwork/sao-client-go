@@ -268,41 +268,7 @@ func (sc *SaoClientApi) Load(
 	commitId string,
 	groupId string,
 ) ([]byte, error) {
-	if keyword == "" {
-		return nil, xerrors.Errorf("keyword is missing")
-	}
-	if version != "" && commitId != "" {
-		version = ""
-	}
-
-	didManager, _, err := sc.GetDidManager(ctx, sc.keyName)
-	if err != nil {
-		return nil, xerrors.Errorf("failed to get did manager %v", err)
-	}
-
-	proposal := saotypes.QueryProposal{
-		Owner:    didManager.Id,
-		Keyword:  keyword,
-		GroupId:  groupId,
-		CommitId: commitId,
-		Version:  version,
-	}
-
-	if !utils.IsDataId(keyword) {
-		proposal.KeywordType = 2
-	}
-
-	gatewayAddress, err := sc.client.GetNodeAddress(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	request, err := sc.buildQueryRequest(ctx, didManager, proposal, sc.client, gatewayAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	resp, err := sc.client.ModelLoad(ctx, request)
+	resp, err := sc.loadResponse(ctx, keyword, version, commitId, groupId)
 	if err != nil {
 		return nil, err
 	}
@@ -510,6 +476,42 @@ func (sc *SaoClientApi) UpdateModel(
 		return "", "", "", err
 	}
 	return resp.Alias, resp.DataId, resp.CommitId, nil
+}
+
+func (sc *SaoClientApi) UpdateModelQuick(
+	ctx context.Context,
+	dataId string,
+	jsonData []byte,
+	groupId string,
+	duration uint64,
+	delay uint64,
+	force bool,
+	replica uint64,
+) error {
+	// Load the existing content
+	resp, err := sc.loadResponse(ctx, dataId, "", "", groupId)
+	if err != nil {
+		return fmt.Errorf("Failed to load sao data: %v", err)
+	}
+
+	// Generate a patch between the old content and the target content
+	patch, targetCid, size, err := sc.PatchGen(string(resp.Content), string(jsonData))
+	if err != nil {
+		return fmt.Errorf("Error generating patch: %v", err)
+	}
+
+	if patch == "[]" || patch == "" {
+		// No differences found, return an error
+		return fmt.Errorf("No differences found, unable to update model")
+	}
+
+	// Update the model using the generated patch
+	_, _, _, err = sc.UpdateModel(ctx, patch, duration, delay, force, dataId, resp.CommitId, targetCid.String(), uint64(size), replica, groupId)
+	if err != nil {
+		return fmt.Errorf("Error updating model: %v", err)
+	}
+
+	return nil
 }
 
 func (sc *SaoClientApi) UploadFile(
@@ -783,6 +785,55 @@ func (sc *SaoClientApi) buildClientProposal(_ context.Context, didManager *did.D
 		},
 	}, nil
 }
+
+func (sc *SaoClientApi) loadResponse(
+	ctx context.Context,
+	keyword string,
+	version string,
+	commitId string,
+	groupId string,
+) (*apitypes.LoadResp, error) { // Replace ResponseType with the actual type of resp
+	if keyword == "" {
+		return nil, xerrors.Errorf("keyword is missing")
+	}
+	if version != "" && commitId != "" {
+		version = ""
+	}
+
+	didManager, _, err := sc.GetDidManager(ctx, sc.keyName)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to get did manager %v", err)
+	}
+
+	proposal := saotypes.QueryProposal{
+		Owner:    didManager.Id,
+		Keyword:  keyword,
+		GroupId:  groupId,
+		CommitId: commitId,
+		Version:  version,
+	}
+
+	if !utils.IsDataId(keyword) {
+		proposal.KeywordType = 2
+	}
+
+	gatewayAddress, err := sc.client.GetNodeAddress(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	request, err := sc.buildQueryRequest(ctx, didManager, proposal, sc.client, gatewayAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sc.client.ModelLoad(ctx, request)
+	if err != nil {
+		return nil, err
+	}
+	return &resp, nil
+}
+
 
 func CalculateCid(content []byte) (cid.Cid, error) {
 	pref := cid.Prefix{
